@@ -1,6 +1,6 @@
 # RUNNER-CONTAINER
 
-Github-action runner container designed for airee project.
+The github-action runner container designed for the airee project.
 The yaml file allows you to create a kubernetes deployment object which contains two containers in one pod.
 The first container launches a github action runner and the second container runs a daemon docker.
 They cooperate with each other and therefore the runner is able to run docker containers while executing CI/CD pipelines.
@@ -16,13 +16,13 @@ Creating tokens is required while creating state terraform files in the bucket.
 
 - Transfer the private key to your kubernetes cluster. CI/CD pipeline will use this key to configure GCP connection.
 
-*post service account keys*
+*push the service account keys*
 
 Pattern: ```kubectl create secret generic json --from-file=key.json=./__path_to_generated_file__.json```
 
 Example: ```kubectl create secret generic json --from-file=key.json=./key.json```
 
-- Generate PAT token which allows to read runner tokens.
+- Generate PAT token which allows to read runner tokens automatically.
 ```Click your profile on the top right corner / Settings / Developer settings / Personal acces tokens / Generate new token.``` 
 Select the required permissions and save the PAT token as a secret in Kubernetes by putting the value in the token.yaml file. 
 
@@ -30,7 +30,7 @@ Select the required permissions and save the PAT token as a secret in Kubernetes
 
 - Build docker image for runner
 
-*create docker image*
+*create the docker image*
 
 ```cd docker-image```
 
@@ -40,9 +40,9 @@ Example: ```docker build . -t airflowkubernetesui.azurecr.io/runner-container ``
 
 - Push this image to registry
 
-*authorization with registry via temporary token*
+*authorization with the registry via the temporary token*
 
-*run the code below in azzure terminal*
+*run the code below in the azzure terminal*
 
 Pattern: ```az acr login -n __container_registry__ --expose-token```
 
@@ -54,7 +54,7 @@ Pattern: ```docker login __container_registry__ --username 00000000-0000-0000-00
 
 Example: ```docker login airflowkubernetesui.azurecr.io --username 00000000-0000-0000-0000-000000000000 --password KoozhesGeorboybNiOvDupgoDracfepHahitnuppOsjajwedgeyptecTharHoosOytkungAbMymyevro```
 
-*push image to registry*
+*push the image to the registry*
 
 Pattern: ```docker push __container_registry__/__container_name__```
 
@@ -72,5 +72,5 @@ Pattern: ```az aks get-credentials --resource-group __resource_group__ --name __
 
 Example: ```az aks get-credentials --resource-group airflow_kubernetes_ui --name airflow_kubernetes_ui_test```
 
-- Create deployment
+- Create the deployment
 ```kubectl apply -f k8s-yaml-files/runner-deployment.yaml```
