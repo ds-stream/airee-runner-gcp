@@ -67,6 +67,7 @@ Pattern: az aks update -n __kubernetes_cluster_name__ -g __group_resources__ --a
 Example: az aks update -n airflow_kubernetes_ui_test -g airflow_kubernetes_ui --attach-acr airflowkubernetesui
 
 - Authorize kubectl
+
 Pattern: az aks get-credentials --resource-group __resource_group__ --name __kubernetes_cluster_name__
 
 Example: az aks get-credentials --resource-group airflow_kubernetes_ui --name airflow_kubernetes_ui_test
