@@ -23,7 +23,7 @@ Pattern: ```kubectl create secret generic json --from-file=key.json=./__path_to_
 Example: ```kubectl create secret generic json --from-file=key.json=./key.json```
 
 - Generate PAT token which allows to read runner tokens.
-Click your profile on the top right corner / Settings / Developer settings / Personal acces tokens / Generate new token. 
+```Click your profile on the top right corner / Settings / Developer settings / Personal acces tokens / Generate new token.``` 
 Select the required permissions and save the PAT token as a secret in Kubernetes by putting the value in the token.yaml file. 
 
 ```kubectl apply -f k8s-yaml-files/token.yaml```
