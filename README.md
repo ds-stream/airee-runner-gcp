@@ -18,7 +18,7 @@ Creating tokens is required while creating state terraform files in the bucket.
 
 #post service account keys
 
-Pattern: kubectl create secret generic json --from-file=key.json=./__path_to_generated_file__.json
+Pattern: ```kubectl create secret generic json --from-file=key.json=./__path_to_generated_file__.json```
 
 Example: kubectl create secret generic json --from-file=key.json=./key.json
 
