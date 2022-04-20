@@ -7,4 +7,4 @@ cd ${RUNNER_PATH}
 TOKEN=$(curl -sX POST -H "Authorization: token ${PAT_TOKEN}" https://api.github.com/orgs/${ORGANIZATION}/actions/runners/registration-token | jq .token --raw-output)
 #fi
 
-./config.sh --url ${REPO_URL} --token ${TOKEN} --name ${RUNNER_NAME} --runnergroup Default --labels ${RUNNER_LABELS} --work _work --replace && ./run.sh
+./config.sh --disableupdate --url ${REPO_URL} --token ${TOKEN} --name ${RUNNER_NAME} --runnergroup Default --labels ${RUNNER_LABELS} --work _work --replace && ./run.sh
