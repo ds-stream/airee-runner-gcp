@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: runner-application
+spec:
+  serviceName: "runner-application-statefulset"
+  template:
+    metadata:
+      labels:
+        app: runner-application
+        type: cicd
+    spec:
+      containers:
+        - name: runner-container
+          image: airflowkubernetesui.azurecr.io/runner-container
+          env:
+            - name: DOCKER_HOST
+              value: tcp://localhost:2375
+            - name: PAT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: tokenpat
+                  key: tokenpat
+            - name: RUNNER_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: ORGANIZATION
+              value: DsAirKube
+            - name: REPO_URL
+              value: https://github.com/DsAirKube
+            - name: RUNNER_LABELS
+              value: azzure,airflow
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/key.json
+            - name: GOOGLE_IMPERSONATE_SERVICE_ACCOUNT
+              value: airee-app-1@dsstream-airflowk8s.iam.gserviceaccount.com
+          volumeMounts:
+            - mountPath: /var/secrets
+              name: jsonmount
+              readOnly: true
+        - name: dind-daemon
+          image: docker:1.12.6-dind
+          securityContext:
+              privileged: true
+          volumeMounts:
+            - name: docker-graph-storage
+              mountPath: /var/lib/docker
+      volumes:
+        - name: docker-graph-storage
+          emptyDir: {}
+        - name: jsonmount
+          secret:
+            secretName: json
+  replicas: 3
+  selector:
+    matchLabels:
+      type: cicd

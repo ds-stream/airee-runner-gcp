@@ -74,3 +74,8 @@ Example: ```az aks get-credentials --resource-group airflow_kubernetes_ui --name
 
 - Create the deployment
 ```kubectl apply -f k8s-yaml-files/runner-deployment.yaml```
+
+If you want to set up multiple replicas, create a StatefulSet object instead of Deployment.
+The runner-statefulset.yaml creates a StatefulSet object and assigns different runner name for each pod. It prevents from generating problems with replacing the runner when restarting the pod.
+```kubectl apply -f k8s-yaml-files/runner-statefulset.yaml```
+
