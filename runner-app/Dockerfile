@@ -1,14 +1,12 @@
 FROM ubuntu:20.04
 
 #runner configuration
-#PAT_TOKEN airee.app.1@dsstream.com, name: GithubActionsDsAirKube noexpirationdate
-ENV PAT_TOKEN ""
 ENV RUNNER_NAME ""
 ENV ORGANIZATION ""
 ENV REPO_PROJECT ""
+ENV RUNNER_LABELS ""
 #ENV REPO_URL https://github.com/${ORGANIZATION}/${REPO_PROJECT}
-ENV REPO_URL https://github.com/${ORGANIZATION}
-ENV RUNNER_LABELS azzure,airflow 
+ENV REPO_URL https://github.com/${ORGANIZATION} 
 ENV RUNNER_VERSION 2.291.1
 ENV RUNNER_PATH /etc/actions-runner
 ENV SERVICE_ACCOUNT github-runner
@@ -52,7 +50,7 @@ RUN curl -o ${BINARY_VERSION} -L ${URL_BINARY_VERSION} \
     && chown -R ${SERVICE_ACCOUNT} ${RUNNER_PATH}
 
 #copy files
-COPY ./start.sh .
+COPY --chmod=777 ./start.sh .
 
 #install runner dependencies
 RUN ${RUNNER_PATH}/bin/installdependencies.sh
