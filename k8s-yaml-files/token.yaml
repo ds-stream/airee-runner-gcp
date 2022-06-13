@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: Secret
-metadata:
-  name: tokenpat
-type: Opaque
-stringData:
-    tokenpat: "_paste_pat_token_here_"
