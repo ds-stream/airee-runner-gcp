@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: runner-application
+  name: runner-application-gcp
 spec:
   serviceName: "runner-application-statefulset"
   template:
@@ -12,29 +12,24 @@ spec:
     spec:
       containers:
         - name: runner-container
-          image: airflowkubernetesui.azurecr.io/runner-container
+          image: gcr.io/{{PROJECT_ID}}/runner-application
           env:
             - name: DOCKER_HOST
               value: tcp://localhost:2375
-            - name: PAT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: tokenpat
-                  key: tokenpat
             - name: RUNNER_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
             - name: ORGANIZATION
-              value: DsAirKube
+              value: {{GH_ORGANIZATION}}
             - name: REPO_URL
-              value: https://github.com/DsAirKube
+              value: https://github.com/$(ORGANIZATION)
             - name: RUNNER_LABELS
-              value: azzure,airflow
+              value: {{GHR_LABELS}}
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/key.json
             - name: GOOGLE_IMPERSONATE_SERVICE_ACCOUNT
-              value: airee-app-1@dsstream-airflowk8s.iam.gserviceaccount.com
+              value: {{RUNNER_SA}}
           volumeMounts:
             - mountPath: /var/secrets
               name: jsonmount
@@ -52,7 +47,7 @@ spec:
         - name: jsonmount
           secret:
             secretName: json
-  replicas: 3
+  replicas: {{REPLICA_NUM}}
   selector:
     matchLabels:
       type: cicd
