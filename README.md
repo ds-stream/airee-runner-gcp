@@ -12,7 +12,7 @@ The runner-container app for gcp contain bash script which:
 
 Script can be run localy. Requirements:
 - gcloud cli  - loggeed as a project owner to set up infrastructure
-- kubectl - for set up app on kluster
+- kubectl - for set up app on cluster
 - docker - to build and publish images for runner-app and Airee base image
 
 ## How to use
