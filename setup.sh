@@ -79,7 +79,7 @@ then
     echo "Project ${project_id} exists, set project as default"
     gcloud config set project ${project_id}
 else
-    echo "Project ${project_id} not exists"
+    echo "Project ${project_id} not exists or user not logged"
     exit 1
 fi
 
