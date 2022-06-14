@@ -2,7 +2,9 @@
 
 ## Overview
 
-The runner-container app for gcp contain bash script whitch:
+The github-action runner container designed for the airee project. The first container launches a github action runner and the second container runs a daemon docker. They cooperate with each other and therefore the runner is able to run docker containers while executing CI/CD pipelines.
+
+The runner-container app for gcp contain bash script which:
 - Enable all services and APIs for runner and Airee
 - create GKE cluster for runner
 - build and publish runner-app and airee-base images on GCR
@@ -46,3 +48,18 @@ Custom labels
 ```bash
 bash setup.sh -p infra-sandbox-352609 -o DsAirKube -t PERSONALTOKEN -a gcp,airee,prod
 ```
+
+## Script steps
+
+- set variables base on params
+- check if gcloud, kubectl and docker apps are on env
+- set default project
+- enable all services/apis
+- create cluster or update if exists
+- create service account with role grant or update if exists
+- create workload identity for k8s sa
+- create key for sa and push it to Secret Menager or update if exists
+- push github PAT to Secret Menager or update if exists
+- auth docker to GCR
+- build runner-app and airee-base images and push it to GCR
+- set up runner-app on cluster
