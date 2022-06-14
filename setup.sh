@@ -119,7 +119,8 @@ then
     gcloud container clusters update ${runner_cluster_name} \
         --region ${gke_region} \
         --node-locations ${gke_node_location} \
-        --node-pool "default-pool"
+        --node-pool "default-pool" \
+        --workload-pool="${project_id}.svc.id.goog"
     gcloud container clusters resize -q ${runner_cluster_name} \
         --region ${gke_region} \
         --node-pool "default-pool" \
@@ -131,7 +132,8 @@ else
         --region ${gke_region} \
         --node-locations ${gke_node_location} \
         --num-nodes ${gke_node_num} \
-        --machine-type "${gke_machine_type}"
+        --machine-type "${gke_machine_type}" \
+        --workload-pool="${project_id}.svc.id.goog"
 fi
 
 # Check if SA exists if not create one
@@ -154,6 +156,12 @@ else
         --member="serviceAccount:${sa_name}@${project_id}.iam.gserviceaccount.com" \
         --role="roles/iam.serviceAccountTokenCreator"
 fi
+
+# add workload identity
+echo "Creating workload identity"
+gcloud iam service-accounts add-iam-policy-binding ${sa_name}@${project_id}.iam.gserviceaccount.com \
+    --role roles/iam.workloadIdentityUser \
+    --member "serviceAccount:${project_id}.svc.id.goog[default/runner-account]"
 
 # create tmp folder
 
@@ -198,7 +206,7 @@ gcloud secrets add-iam-policy-binding "runner_gh_token" \
             --role='roles/secretmanager.admin'
 
 # auth to gcr in docker
-gcloud auth configure-docker
+gcloud auth configure-docker -q
 
 # build runner app image
 docker build -t gcr.io/${project_id}/runner-application ./runner-app/.
@@ -213,7 +221,7 @@ k8s_main=$(cat ./k8s-yaml-files/runner-statefulset.yaml \
     | sed "s/{{PROJECT_ID}}/${project_id}/g" \
     | sed "s/{{GH_ORGANIZATION}}/${gh_org}/g" \
     | sed "s/{{GHR_LABELS}}/${ghr_labels}/g" \
-    | sed "s/{{RUNNER_SA}}/${sa_name}@${project_id}.iam.gserviceaccount.com/g" \ 
+    | sed "s/{{RUNNER_SA}}/${sa_name}@${project_id}.iam.gserviceaccount.com/g" \
     | sed "s/{{REPLICA_NUM}}/${replica_num}/g")
 
 echo "$k8s_main"

@@ -1,8 +1,6 @@
 #!/bin/bash
 cd ${RUNNER_PATH}
 
-gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
-
 # get PAT_TOKEN from secret menager
 pat_token_version=$(gcloud secrets versions list runner_gh_token --limit=1 --sort-by=name --format="get(name)")
 PAT_TOKEN=$(gcloud secrets versions access ${pat_token_version})
