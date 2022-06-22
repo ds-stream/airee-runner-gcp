@@ -21,9 +21,10 @@ Script is placed in root foder here ./setup.sh
 
 Params:
 - -p {project_id} - gcp project-id - owner role needed - <b>Required</b>
-- -r {runner_cluster_name} - name of cluster - default "runner-cluster"
 - -o {gh_org} - name of GitHub Organization where GH Self-Hosted runner will be created - <b>Required</b>
 - -t {gh_token} - Personal Access Token to GitHub. Token with at least two permissions: "admin:enterprise" and "admin:org" - <b>Required</b>
+- -b {bucket_name} - backend bucked for terraform state - <b>Required</b>
+- -r {runner_cluster_name} - name of cluster - default "runner-cluster"
 - -g {gke_region} - GKE region, default us-central1-c
 - -l {gke_node_location} - GKE node location, default us-central1-c
 - -n {gke_node_num} - GKE node number, default 1
@@ -31,6 +32,7 @@ Params:
 - -s {sa_name} - GCP Service Acount name, default "runner-sa"
 - -a {ghr_labels} - GitHub runner labels. Provide labes separated by comma without spaces, e.g: "gcp,test,runner,airee". Default value: "gcp,airflow"
 - -i {replica_num} - number of runners, default 1
+
 
 Examples of usage:
 

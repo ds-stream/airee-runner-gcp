@@ -1,7 +1,7 @@
 #!/bin/bash
 # params
 
-while getopts p:r:t:g:l:n:m:s:a:o:i: flag
+while getopts p:r:t:g:l:n:m:s:a:o:i:b: flag
 do
     case "${flag}" in
         p) tmp_project_id=${OPTARG};;
@@ -15,6 +15,7 @@ do
         s) tmp_sa_name=${OPTARG};;
         a) tmp_ghr_labels=${OPTARG};;
         i) tmp_replica_num=${OPTARG};;
+        b) tmp_bucket_name=${OPTARG};;
     esac
 done
 
@@ -31,6 +32,7 @@ gke_machine_type="${tmp_gke_machine_type:-e2-standard-2}"
 sa_name="${tmp_sa_name:-runner-sa}"
 ghr_labels="${tmp_ghr_labels:-gcp,airflow}"
 replica_num="${tmp_replica_num:-1}"
+bucket_name="${tmp_bucket_name}"
 
 # echo "project_id: $project_id"
 # echo "runner_cluster_name : $runner_cluster_name"
@@ -117,9 +119,10 @@ if [[ $(gcloud container clusters list --filter="name:${runner_cluster_name}") !
 then
     echo "Cluster ${runner_cluster_name} exists, update to provided conf"
     gcloud container clusters update ${runner_cluster_name} \
-        --region ${gke_region} \
-        --node-locations ${gke_node_location} \
-        --node-pool "default-pool" \
+        --region="${gke_region}" \
+        --node-locations="${gke_node_location}"
+    gcloud container clusters update ${runner_cluster_name} \
+        --region="${gke_region}" \
         --workload-pool="${project_id}.svc.id.goog"
     gcloud container clusters resize -q ${runner_cluster_name} \
         --region ${gke_region} \
@@ -163,27 +166,17 @@ gcloud iam service-accounts add-iam-policy-binding ${sa_name}@${project_id}.iam.
     --role roles/iam.workloadIdentityUser \
     --member "serviceAccount:${project_id}.svc.id.goog[default/runner-account]"
 
-# create tmp folder
-
-mkdir -p ./tmp_runner
-
-# create key
-
-gcloud iam service-accounts keys create ./tmp_runner/key.json --iam-account="${sa_name}@${project_id}.iam.gserviceaccount.com"
-
-# create secret with key for SA
-# check if secret exisits if not create, else update
-list_of_secrets=$(gcloud secrets list --filter="name:runner_${sa_name}_key_json")
-if [[ ${list_of_secrets} != "" ]]
+# create bucket for terreform backend
+if [[ $(gsutil ls -b gs://${bucket_name}) != "" ]]
 then
-    echo "Secret runner_${sa_name}_key_json exists, add new version"
-    gcloud secrets versions add "runner_${sa_name}_key_json" \
-        --data-file=./tmp_runner/key.json
+    echo "Bucket ${bucket_name} already exists"
 else
-    echo "Secret runner_${sa_name}_key_json not exists, creating"
-    gcloud secrets create "runner_${sa_name}_key_json" \
-        --data-file=./tmp_runner/key.json
+    echo "Creating bucket ${bucket_name}"
+    gsutil mb gs://${bucket_name}
+    gsutil versioning set on gs://${bucket_name}
+    if [ $? -ne 0 ]; then echo "ERROR"; exit 1; fi
 fi
+
 
 list_of_secrets=$(gcloud secrets list --filter="name:runner_gh_token")
 if [[ ${list_of_secrets} != "" ]]
@@ -196,10 +189,6 @@ else
     echo "${gh_token}" | gcloud secrets create "runner_gh_token" \
         --data-file=-
 fi
-
-gcloud secrets add-iam-policy-binding "runner_${sa_name}_key_json" \
-            --member="serviceAccount:${sa_name}@${project_id}.iam.gserviceaccount.com" \
-            --role='roles/secretmanager.admin'
 
 gcloud secrets add-iam-policy-binding "runner_gh_token" \
             --member="serviceAccount:${sa_name}@${project_id}.iam.gserviceaccount.com" \
@@ -228,17 +217,7 @@ echo "$k8s_main"
 
 gcloud container clusters get-credentials ${runner_cluster_name} --region ${gke_region}
 
-# implementation on gke
-# add sa key to secrets
-kubectl create secret generic json --from-file=key.json=./tmp_runner/key.json \
-    --cluster gke_${project_id}_${gke_region}_${runner_cluster_name} \
-    --save-config \
-    --dry-run=client \
-    -o yaml | kubectl apply -f -
-
 # implement runner
 echo "${k8s_main}" | kubectl apply --cluster gke_${project_id}_${gke_region}_${runner_cluster_name} -f -
-
-rm -r ./tmp_runner
 
 exit 0

@@ -22,7 +22,11 @@ spec:
           image: gcr.io/{{PROJECT_ID}}/runner-application
           env:
             - name: DOCKER_HOST
-              value: tcp://localhost:2375
+              value: tcp://localhost:2376
+            - name: DOCKER_CERT_PATH
+              value: /certs/client
+            - name: DOCKER_TLS_VERIFY
+              value: "1"
             - name: RUNNER_NAME
               valueFrom:
                 fieldRef:
@@ -33,28 +37,32 @@ spec:
               value: https://github.com/$(ORGANIZATION)
             - name: RUNNER_LABELS
               value: {{GHR_LABELS}}
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /var/secrets/key.json
-            - name: GOOGLE_IMPERSONATE_SERVICE_ACCOUNT
-              value: {{RUNNER_SA}}
           volumeMounts:
-            - mountPath: /var/secrets
-              name: jsonmount
+            - mountPath: /certs/client
+              name: some-docker-certs-client
               readOnly: true
         - name: dind-daemon
-          image: docker:1.12.6-dind
+          image: docker:20.10-dind # docker:1.12.6-dind
+          env:
+            - name: DOCKER_TLS_CERTDIR
+              value: /certs
           securityContext:
               privileged: true
           volumeMounts:
             - name: docker-graph-storage
               mountPath: /var/lib/docker
+            - name: some-docker-certs-ca
+              mountPath: /certs/ca
+            - name: some-docker-certs-client
+              mountPath: /certs/client
       serviceAccountName: runner-account
       volumes:
         - name: docker-graph-storage
           emptyDir: {}
-        - name: jsonmount
-          secret:
-            secretName: json
+        - name: some-docker-certs-ca
+          emptyDir: {}
+        - name: some-docker-certs-client
+          emptyDir: {}
   replicas: {{REPLICA_NUM}}
   selector:
     matchLabels:
