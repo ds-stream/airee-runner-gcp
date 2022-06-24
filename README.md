@@ -58,9 +58,9 @@ bash setup.sh -p infra-sandbox-352609 -o DsAirKube -t PERSONALTOKEN -a gcp,airee
 - set default project
 - enable all services/apis
 - create cluster or update if exists
+- create bucket for terraform states files
 - create service account with role grant or update if exists
 - create workload identity for k8s sa
-- create key for sa and push it to Secret Menager or update if exists
 - push github PAT to Secret Menager or update if exists
 - auth docker to GCR
 - build runner-app and airee-base images and push it to GCR
