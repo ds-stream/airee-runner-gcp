@@ -140,6 +140,8 @@ else
 fi
 
 # Check if SA exists if not create one
+# Owner role to create needed services
+# Token creator to create initial token for flux to auth to GCR
 if [[ $(gcloud iam service-accounts list --filter="email:${sa_name}@${project_id}.iam.gserviceaccount.com") != "" ]]
 then
     echo "Service account ${sa_name} exist, update permissions"
