@@ -1,7 +1,7 @@
 #!/bin/bash
 # params
 
-while getopts p:r:t:g:l:n:m:s:a:o:i:b: flag
+while getopts p:r:t:g:l:n:m:s:a:o:i:b:d: flag
 do
     case "${flag}" in
         p) tmp_project_id=${OPTARG};;
@@ -16,6 +16,7 @@ do
         a) tmp_ghr_labels=${OPTARG};;
         i) tmp_replica_num=${OPTARG};;
         b) tmp_bucket_name=${OPTARG};;
+        d) tmp_runner_deployment_name=${OPTARG};;
     esac
 done
 
@@ -33,6 +34,7 @@ sa_name="${tmp_sa_name:-runner-sa}"
 ghr_labels="${tmp_ghr_labels:-gcp,airflow}"
 replica_num="${tmp_replica_num:-1}"
 bucket_name="${tmp_bucket_name}"
+deployment_name="${tmp_runner_deployment_name}"
 
 # echo "project_id: $project_id"
 # echo "runner_cluster_name : $runner_cluster_name"
@@ -213,7 +215,8 @@ k8s_main=$(cat ./k8s-yaml-files/runner-statefulset.yaml \
     | sed "s/{{GH_ORGANIZATION}}/${gh_org}/g" \
     | sed "s/{{GHR_LABELS}}/${ghr_labels}/g" \
     | sed "s/{{RUNNER_SA}}/${sa_name}@${project_id}.iam.gserviceaccount.com/g" \
-    | sed "s/{{REPLICA_NUM}}/${replica_num}/g")
+    | sed "s/{{REPLICA_NUM}}/${replica_num}/g" \
+    | sed "s/{{DEPLOYMENT_NAME}}/${deployment_name}/g")
 
 echo "$k8s_main"
 
