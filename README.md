@@ -32,6 +32,7 @@ Params:
 - -s {sa_name} - GCP Service Acount name, default "runner-sa"
 - -a {ghr_labels} - GitHub runner labels. Provide labes separated by comma without spaces, e.g: "gcp,test,runner,airee". Default value: "gcp,airflow"
 - -i {replica_num} - number of runners, default 1
+- -d {deployment_name} - name of deployment
 
 
 Examples of usage:
