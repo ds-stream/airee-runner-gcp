@@ -32,9 +32,9 @@ gke_node_num="${tmp_gke_node_num:-1}"
 gke_machine_type="${tmp_gke_machine_type:-e2-standard-2}"
 sa_name="${tmp_sa_name:-runner-sa}"
 ghr_labels="${tmp_ghr_labels:-gcp,airflow}"
-replica_num="${tmp_replica_num:-1}"
+replica_num="${tmp_replica_num:-2}"
 bucket_name="${tmp_bucket_name}"
-deployment_name="${tmp_runner_deployment_name}"
+deployment_name="${tmp_runner_deployment_name:-runner-cluster}"
 
 # echo "project_id: $project_id"
 # echo "runner_cluster_name : $runner_cluster_name"
@@ -202,11 +202,11 @@ gcloud secrets add-iam-policy-binding "runner_gh_token" \
 gcloud auth configure-docker -q
 
 # build runner app image
-docker build -t gcr.io/${project_id}/runner-application ./runner-app/.
+DOCKER_BUILDKIT=1 docker build -t gcr.io/${project_id}/runner-application ./runner-app/.
 docker push gcr.io/${project_id}/runner-application
 
 # build airee base app image
-docker build -t gcr.io/${project_id}/airee-base ./airee-base/.
+DOCKER_BUILDKIT=1 docker build -t gcr.io/${project_id}/airee-base ./airee-base/.
 docker push gcr.io/${project_id}/airee-base
 
 # create k8m manifest
@@ -221,6 +221,15 @@ k8s_main=$(cat ./k8s-yaml-files/runner-statefulset.yaml \
 echo "$k8s_main"
 
 gcloud container clusters get-credentials ${runner_cluster_name} --region ${gke_region}
+
+# initial token for runner
+
+kubectl create secret docker-registry gcr-credentials \
+                --dry-run=client \
+                --docker-server="gcr.io" \
+                --docker-username=oauth2accesstoken \
+                --docker-password="$(gcloud auth print-access-token --impersonate-service-account=${sa_name}@${project_id}.iam.gserviceaccount.com))" \
+                -o yaml | kubectl apply -f -
 
 # implement runner
 echo "${k8s_main}" | kubectl apply --cluster gke_${project_id}_${gke_region}_${runner_cluster_name} -f -

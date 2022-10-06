@@ -5,6 +5,66 @@ metadata:
     iam.gke.io/gcp-service-account: {{RUNNER_SA}}
   name: runner-account
 ---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gcr-credentials-sync
+rules:
+- apiGroups: [""]
+  resources:
+  - secrets
+  verbs:
+  - get
+  - create
+  - patch
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gcr-credentials-sync
+subjects:
+- kind: ServiceAccount
+  name: runner-account
+roleRef:
+  kind: Role
+  name: gcr-credentials-sync
+  apiGroup: ""
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: gcr-credentials-sync
+spec:
+  suspend: false
+  schedule: "*/45 * * * *"
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: runner-account
+          restartPolicy: Never
+          containers:
+          - image: google/cloud-sdk
+            name: create-secret
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: SECRET_NAME
+              value: gcr-credentials
+            - name: GCR_REGISTRY
+              value: gcr.io
+            command:
+            - /bin/bash
+            - -ce
+            - |-
+              kubectl create secret docker-registry $SECRET_NAME \
+                --dry-run=client \
+                --docker-server="$GCR_REGISTRY" \
+                --docker-username=oauth2accesstoken \
+                --docker-password="$(gcloud auth print-access-token)" \
+                -o yaml | kubectl apply -f -
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
