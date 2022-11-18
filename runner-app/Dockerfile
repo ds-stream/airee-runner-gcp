@@ -36,6 +36,9 @@ RUN apt install -y gnupg \
 #install kubectl
 RUN apt-get update -y && apt-get upgrade -y && apt-get install kubectl -y
 
+#install gcloud-auth-plugin
+RUN apt-get update -y && apt-get upgrade -y && apt-get install google-cloud-sdk-gke-gcloud-auth-plugin -y
+
 #create tech user
 RUN adduser --disabled-password --gecos "" ${SERVICE_ACCOUNT}
 RUN usermod -aG docker ${SERVICE_ACCOUNT}
@@ -51,6 +54,9 @@ RUN curl -o ${BINARY_VERSION} -L ${URL_BINARY_VERSION} \
 
 #copy files
 COPY --chmod=777 ./start.sh .
+
+#configure gcloud-auth-plugin
+RUN echo "USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> /home/${SERVICE_ACCOUNT}/.bashrc
 
 #install runner dependencies
 RUN ${RUNNER_PATH}/bin/installdependencies.sh
